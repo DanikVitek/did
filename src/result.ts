@@ -2,141 +2,52 @@
  * Represents a result of an operation that may fail.
  * Can be either `Ok` or `Err`.
  */
-export type Result<T, E> = Ok<T, E> | Err<T, E>;
+export type Result<T, E> = { isOk: true; value: T } | { isOk: false; error: E };
 
-/**
- * Represents a successful result of an operation.
- */
-export class Ok<T, E> {
-    constructor(public value: T) {
-    }
-
-    isOk(): this is Ok<T, E> {
-        return true;
-    }
-
-    isErr(): this is Err<T, E> {
-        return false;
-    }
-
-    map<U>(f: (value: T) => U): Result<U, E> {
-        return new Ok(f(this.value));
-    }
-
-    mapErr<U>(_f: (error: E) => U): Result<T, U> {
-        return new Ok(this.value);
-    }
-
-    /**
-     * Unwraps the value of this result.
-     * @throws {Error} If the result is an Err.
-     */
-    unwrap(): T {
-        return this.value;
-    }
-
-    /**
-     * Unwraps the error of this result.
-     * @throws {Error} If the result is an Ok.
-     */
-    unwrapErr(): E {
-        throw new Error(`Called Result::unwrapErr() on Ok variant ${this.value}`);
-    }
-
-    /**
-     * Unwraps the value of this `Result` or returns the provided default value.
-     * @param _defaultValue The default value to return if the `Result` is an `Err`. (not used)
-     */
-    unwrapOr(_defaultValue: T): T {
-        return this.value;
-    }
-
-    /**
-     * Maps the value of this `Result` using the provided function if the `Result` is an `Ok`.
-     * Otherwise, returns the original `Err` value.
-     *
-     * @param f The function to map the value.
-     * @returns The result of the function or the original `Err` value.
-     */
-    flatMap<U>(f: (value: T) => Result<U, E>): Result<U, E> {
-        return f(this.value);
-    }
-
-    toString(): string {
-        return `Ok(${this.value})`;
-    }
+export function Ok<T>(value: T): Result<T, never> {
+    return {isOk: true, value};
 }
 
-/**
- * Represents a failed result of an operation.
- */
-export class Err<T, E> {
-    constructor(public error: E) {
-    }
+export function Err<E>(error: E): Result<never, E> {
+    return {isOk: false, error};
+}
 
-    /**
-     * Returns true if the `Result` is an `Ok`. Otherwise, false.
-     */
-    isOk(): this is Ok<T, E> {
-        return false;
-    }
+export function isOk<T, E>(result: Result<T, E>): result is { isOk: true; value: T } {
+    return result.isOk;
+}
 
-    /**
-     * Returns true if the `Result` is an `Rrr`. Otherwise, false.
-     */
-    isErr(): this is Err<T, E> {
-        return true;
-    }
+export function isErr<T, E>(result: Result<T, E>): result is { isOk: false; error: E } {
+    return !result.isOk;
+}
 
-    /**
-     * Maps the value of this result using the provided function.
-     * @param _f The function to map the value. (not used)
-     */
-    map<U>(_f: (value: T) => U): Result<U, E> {
-        return new Err(this.error);
+export function unwrap<T, E>(result: Result<T, E>): T {
+    if (isOk(result)) {
+        return result.value;
     }
+    throw new Error("Called `unwrap()` on an `Err` value");
+}
 
-    /**
-     * Maps the error of this result using the provided function.
-     * @param f The function to map the error.
-     */
-    mapErr<U>(f: (error: E) => U): Result<T, U> {
-        return new Err(f(this.error));
+export function unwrapErr<T, E>(result: Result<T, E>): E {
+    if (isErr(result)) {
+        return result.error;
     }
+    throw new Error("Called `unwrapErr()` on an `Ok` value");
+}
 
-    /**
-     * Unwraps the value of this `Result`.
-     * @throws {Error} If the value is an `Err`.
-     */
-    unwrap(): T {
-        throw new Error(`Called Result::unwrap() on err variant: ${this.error}`);
-    }
+export function map<T, U, E>(
+    result: Result<T, E>,
+    mapper: (value: T) => U,
+): Result<U, E> {
+    return isOk(result)
+        ? Ok(mapper(result.value))
+        : result;
+}
 
-    /**
-     * Unwraps the error of this `Result`.
-     * @throws {Error} If the value is an `Ok`.
-     */
-    unwrapErr(): E {
-        return this.error;
-    }
-
-    /**
-     * Unwraps the value of this `Result` or returns the provided default value.
-     * @param defaultValue The default value to return if the `Result` is an `Err`.
-     */
-    unwrapOr(defaultValue: T): T {
-        return defaultValue;
-    }
-
-    /**
-     * Maps the value of this `Result` using the provided function if the `Result` is an `Ok`.
-     * @param _f The function to map the value. (not used)
-     */
-    flatMap<U>(_f: (value: T) => Result<U, E>): Result<U, E> {
-        return new Err(this.error);
-    }
-
-    toString(): string {
-        return `Err(${this.error})`;
-    }
+export function flatMap<T, U, E>(
+    result: Result<T, E>,
+    mapper: (value: T) => Result<U, E>,
+): Result<U, E> {
+    return isOk(result)
+        ? mapper(result.value)
+        : result;
 }

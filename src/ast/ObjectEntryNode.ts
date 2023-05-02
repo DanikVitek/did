@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap, unwrapErr} from "../result";
 import {alpha, alphaNumeric, oneOf} from "../util_parsers/basic";
 import {alt, many0, map, recognize, tuple, withError} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError} from "../util_parsers/types";
@@ -14,15 +14,15 @@ export default class ObjectEntryNode extends ASTNode {
 
     static parse(input: string, context: Context): IResult<[ObjectEntryNode, Context]> {
         const parseResult = parseObjectEntry(input, context);
-        if (parseResult.isErr()) {
-            return new Err(new ParseError(
-                `входження об'єкту (${parseResult.unwrapErr()})`,
+        if (isErr(parseResult)) {
+            return Err(new ParseError(
+                `входження об'єкту (${unwrapErr(parseResult)})`,
                 input,
                 new CustomError("Розбір входження об'єкту"),
             ));
         }
-        const [rest, [key, [value, newContext]]] = parseResult.unwrap();
-        return new Ok([
+        const [rest, [key, [value, newContext]]] = unwrap(parseResult);
+        return Ok([
             rest,
             [
                 new ObjectEntryNode(key, value, context),
@@ -60,10 +60,10 @@ const KEY_AND_EQ = tuple(
 
 function parseObjectEntry(input: string, context: Context): IResult<[string, [ASTNode, Context]]> {
     const keyAndEq = KEY_AND_EQ(input);
-    if (keyAndEq.isErr()) {
-        return new Err(keyAndEq.unwrapErr());
+    if (isErr(keyAndEq)) {
+        return keyAndEq;
     }
-    const [rest, [key, ws1, , ws2]] = keyAndEq.unwrap();
+    const [rest, [key, ws1, , ws2]] = unwrap(keyAndEq);
     const newContext = context
         .addColumns(key.length)
         .addRows(ws1.rows)

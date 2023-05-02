@@ -1,5 +1,5 @@
+import {Err, flatMap, isErr, isOk, map as resultMap, Ok, unwrap} from "../result";
 import {IResult, ParseError, Parser} from "./types";
-import {Err, Ok} from "../result";
 
 /**
  * A combinator that maps the result of a parser combinator
@@ -7,7 +7,7 @@ import {Err, Ok} from "../result";
  * */
 export function map<T, U>(parser: Parser<T>, f: (value: T) => U): Parser<U> {
     return (input: string) => {
-        return parser(input).map(([rest, result]) => [rest, f(result)]);
+        return resultMap(parser(input), ([rest, result]) => [rest, f(result)]);
     };
 }
 
@@ -17,7 +17,7 @@ export function map<T, U>(parser: Parser<T>, f: (value: T) => U): Parser<U> {
  */
 export function value<T, U>(parser: Parser<T>, value: U): Parser<U> {
     return (input: string) => {
-        return parser(input).map(([rest, _]) => [rest, value]);
+        return resultMap(parser(input), ([rest]) => [rest, value]);
     };
 }
 
@@ -26,8 +26,8 @@ export function value<T, U>(parser: Parser<T>, value: U): Parser<U> {
  */
 export function pair<T, U>(first: Parser<T>, second: Parser<U>): Parser<[T, U]> {
     return (input: string) => {
-        return first(input).flatMap(([rest1, result1]) => {
-            return second(rest1).map(([rest2, result2]) => [rest2, [result1, result2]]);
+        return flatMap(first(input), ([rest1, result1]) => {
+            return resultMap(second(rest1), ([rest2, result2]) => [rest2, [result1, result2]]);
         });
     };
 }
@@ -38,13 +38,15 @@ export function pair<T, U>(first: Parser<T>, second: Parser<U>): Parser<[T, U]> 
  */
 export function tuple<T extends any[]>(...parsers: { [K in keyof T]: Parser<T[K]> }): Parser<T> {
     return (input: string) => {
-        let result: IResult<any> = new Ok([input, Array(parsers.length)]);
+        let result: IResult<any> = Ok([input, Array(parsers.length)]);
         let index = 0;
 
         for (const parser of parsers) {
-            result = result.flatMap(
+            result = flatMap(
+                result,
                 ([rest, results]) =>
-                    parser(rest).map(
+                    resultMap(
+                        parser(rest),
                         ([rest, result]) => {
                             results[index] = result;
                             index++;
@@ -67,11 +69,11 @@ export function tuple<T extends any[]>(...parsers: { [K in keyof T]: Parser<T[K]
 export function withError<T>(parser: Parser<T>, err: ParseError): Parser<T> {
     return input => {
         const result = parser(input);
-        if (result.isOk()) {
+        if (isOk(result)) {
             return result;
         }
 
-        return new Err(err);
+        return Err(err);
     };
 }
 
@@ -83,12 +85,12 @@ export function alt<T>(...parsers: Parser<T>[]): Parser<T> {
     return (input: string) => {
         for (const parser of parsers) {
             const result = parser(input);
-            if (result.isOk()) {
+            if (isOk(result)) {
                 return result;
             }
         }
 
-        return new Err(new ParseError("one of the provided parsers", input, "alt"));
+        return Err(new ParseError("one of the provided parsers", input, "alt"));
     };
 }
 
@@ -128,19 +130,19 @@ export function many0<T>(parser: Parser<T>): Parser<T[]> {
         while (true) {
             const prevRestLen = rest.length; // Keep track of the previous `rest.length`
             const next = parser(rest);
-            if (next.isOk()) {
-                [rest, results[results.length]] = next.unwrap();
+            if (isOk(next)) {
+                [rest, results[results.length]] = unwrap(next);
             } else {
                 break;
             }
 
             // Infinite loop check: if the parser doesn't consume any input, break the loop
             if (rest.length === prevRestLen) {
-                return new Err(new ParseError("parser that consumes input", input, "many0"));
+                return Err(new ParseError("parser that consumes input", input, "many0"));
             }
         }
 
-        return new Ok([rest, results]);
+        return Ok([rest, results]);
     };
 }
 
@@ -152,12 +154,12 @@ export function many0<T>(parser: Parser<T>): Parser<T[]> {
 export function recognize<T>(parser: Parser<T>): Parser<string> {
     return (input: string) => {
         const result = parser(input);
-        if (result.isErr()) {
-            return new Err(result.unwrapErr());
+        if (isErr(result)) {
+            return result;
         }
 
-        const [rest, _] = result.unwrap();
-        return new Ok([rest, input.slice(0, input.length - rest.length)]);
+        const [rest] = unwrap(result);
+        return Ok([rest, input.slice(0, input.length - rest.length)]);
     };
 }
 
@@ -172,8 +174,8 @@ export function recognize<T>(parser: Parser<T>): Parser<string> {
 export function opt<T>(parser: Parser<T>): Parser<T | null> {
     return (input: string) => {
         const result = parser(input);
-        if (result.isErr()) {
-            return new Ok([input, null]);
+        if (isErr(result)) {
+            return Ok([input, null]);
         }
 
         return result;

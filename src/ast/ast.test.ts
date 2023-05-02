@@ -17,35 +17,35 @@ describe("AST nodes", () => {
         test("parsed from `123`", () => {
             const node = NumberNode.parse("123", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new NumberNode(123, new Context(0, 0)), new Context(0, 3)]]),
+                Ok(["", [new NumberNode(123, new Context(0, 0)), new Context(0, 3)]]),
             );
         });
 
         test("parsed from `123.456`", () => {
             const node = NumberNode.parse("123.456", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new NumberNode(123.456, new Context(0, 0)), new Context(0, 7)]]),
+                Ok(["", [new NumberNode(123.456, new Context(0, 0)), new Context(0, 7)]]),
             );
         });
 
         test("parsed from `-123`", () => {
             const node = NumberNode.parse("-123", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new NumberNode(-123, new Context(0, 0)), new Context(0, 4)]]),
+                Ok(["", [new NumberNode(-123, new Context(0, 0)), new Context(0, 4)]]),
             );
         });
 
         test("parsed from `-123.456`", () => {
             const node = NumberNode.parse("-123.456", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new NumberNode(-123.456, new Context(0, 0)), new Context(0, 8)]]),
+                Ok(["", [new NumberNode(-123.456, new Context(0, 0)), new Context(0, 8)]]),
             );
         });
 
         test("failed to parse from `abc`", () => {
             const node = NumberNode.parse("abc", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError("число", "abc", new CustomError("Розбір числового вузла"))),
+                Err(new ParseError("число", "abc", new CustomError("Розбір числового вузла"))),
             );
         });
     });
@@ -54,21 +54,21 @@ describe("AST nodes", () => {
         test("parsed from `так`", () => {
             const node = LogicalNode.parse("так", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new LogicalNode(true, new Context(0, 0)), new Context(0, 3)]]),
+                Ok(["", [new LogicalNode(true, new Context(0, 0)), new Context(0, 3)]]),
             );
         });
 
         test("parsed from `ні`", () => {
             const node = LogicalNode.parse("ні", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new LogicalNode(false, new Context(0, 0)), new Context(0, 2)]]),
+                Ok(["", [new LogicalNode(false, new Context(0, 0)), new Context(0, 2)]]),
             );
         });
 
         test("failed to parse from `abc`", () => {
             const node = LogicalNode.parse("abc", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError('"так" або "ні"', "abc", new CustomError("Розбір логічного вузла"))),
+                Err(new ParseError('"так" або "ні"', "abc", new CustomError("Розбір логічного вузла"))),
             );
         });
     });
@@ -77,14 +77,14 @@ describe("AST nodes", () => {
         test("parsed from `пусто`", () => {
             const node = EmptyNode.parse("пусто", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new EmptyNode(new Context(0, 0)), new Context(0, 5)]]),
+                Ok(["", [new EmptyNode(new Context(0, 0)), new Context(0, 5)]]),
             );
         });
 
         test("failed to parse from `abc`", () => {
             const node = EmptyNode.parse("abc", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError("пусто", "abc", new CustomError("Розбір вузла 'пусто'"))),
+                Err(new ParseError("пусто", "abc", new CustomError("Розбір вузла 'пусто'"))),
             );
         });
     });
@@ -93,70 +93,70 @@ describe("AST nodes", () => {
         test("parsed from `\"текст\"`", () => {
             const node = TextNode.parse("\"текст\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("текст", new Context(0, 0)), new Context(0, 7)]]),
+                Ok(["", [new TextNode("текст", new Context(0, 0)), new Context(0, 7)]]),
             );
         });
 
         test("parsed from `\"текст\\\"\"`", () => {
             const node = TextNode.parse("\"текст\\\"\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("текст\"", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("текст\"", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"текст\\\\\"`", () => {
             const node = TextNode.parse("\"текст\\\\\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("текст\\", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("текст\\", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"текст\\n\"`", () => {
             const node = TextNode.parse("\"текст\\n\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("текст\n", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("текст\n", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"тек\\nст\"`", () => {
             const node = TextNode.parse("\"тек\\nст\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("тек\nст", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("тек\nст", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"текст\\r\"`", () => {
             const node = TextNode.parse("\"текст\\r\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("текст\r", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("текст\r", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"тек\\rст\"`", () => {
             const node = TextNode.parse("\"тек\\rст\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("тек\rст", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("тек\rст", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"текст\\t\"`", () => {
             const node = TextNode.parse("\"текст\\t\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("текст\t", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("текст\t", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("parsed from `\"тек\\tст\"`", () => {
             const node = TextNode.parse("\"тек\\tст\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new TextNode("тек\tст", new Context(0, 0)), new Context(0, 9)]]),
+                Ok(["", [new TextNode("тек\tст", new Context(0, 0)), new Context(0, 9)]]),
             );
         });
 
         test("failed to parse from `abc`", () => {
             const node = TextNode.parse("abc", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "текст (Помилка розбирача (Розбір початку текстового вузла): Очікувалося '\"', але отримали 'abc')",
                     "abc",
                     new CustomError("Розбір текстового вузла"),
@@ -167,7 +167,7 @@ describe("AST nodes", () => {
         test("failed to parse from `\"ab\nc\"`", () => {
             const node = TextNode.parse("\"ab\nc\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "текст (Помилка розбирача (Розбір кінця текстового вузла): Очікувалося '\"', але отримали '\nc\"')",
                     "\"ab\nc\"",
                     new CustomError("Розбір текстового вузла"),
@@ -180,7 +180,7 @@ describe("AST nodes", () => {
         test("parsed from `ключ=\"значення\"`", () => {
             const node = ObjectEntryNode.parse("ключ=\"значення\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectEntryNode(
                             "ключ",
@@ -195,7 +195,7 @@ describe("AST nodes", () => {
         test("parsed from `ключ=пусто`", () => {
             const node = ObjectEntryNode.parse("ключ=пусто", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectEntryNode(
                             "ключ",
@@ -210,7 +210,7 @@ describe("AST nodes", () => {
         test("parsed from `ключ = пусто`", () => {
             const node = ObjectEntryNode.parse("ключ = пусто", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectEntryNode(
                             "ключ",
@@ -225,7 +225,7 @@ describe("AST nodes", () => {
         test("parsed from `ключ = \"значення\"`", () => {
             const node = ObjectEntryNode.parse("ключ = \"значення\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectEntryNode(
                             "ключ",
@@ -240,7 +240,7 @@ describe("AST nodes", () => {
         test("failed to parse from `=`", () => {
             const node = ObjectEntryNode.parse("=", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "входження об'єкту (Помилка розбирача (Розбір ключа входження об'єкту): Очікувалося 'ключ входження об'єкту', але отримали '=')",
                     "=",
                     new CustomError("Розбір входження об'єкту"),
@@ -251,7 +251,7 @@ describe("AST nodes", () => {
         test("failed to parse from `ключ=-10.5`", () => {
             const node = ObjectEntryNode.parse("ключ=-10.5", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectEntryNode(
                             "ключ",
@@ -266,7 +266,7 @@ describe("AST nodes", () => {
         test("failed to parse from `abc`", () => {
             const node = ObjectEntryNode.parse("abc", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "входження об'єкту (Помилка розбирача (Розбір '=' між ключем і значенням): Очікувалося '=', але отримали '')",
                     "abc",
                     new CustomError("Розбір входження об'єкту"),
@@ -277,7 +277,7 @@ describe("AST nodes", () => {
         test("failed to parse from `ключ=значення`", () => {
             const node = ObjectEntryNode.parse("ключ=значення", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "входження об'єкту (Помилка розбирача (Розбір вузла синтаксичного дерева): Очікувалося 'щось з переліку: \"пусто\", \"так\", \"ні\", число, текст, об\'єкт, словник або список', але отримали 'значе...')",
                     "ключ=значення",
                     new CustomError("Розбір входження об'єкту"),
@@ -288,7 +288,7 @@ describe("AST nodes", () => {
         test("failed to parse from ` ключ=значення`", () => {
             const node = ObjectEntryNode.parse(" ключ=значення", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "входження об'єкту (Помилка розбирача (Розбір ключа входження об'єкту): Очікувалося 'ключ входження об'єкту', але отримали ' ключ...')",
                     " ключ=значення",
                     new CustomError("Розбір входження об'єкту"),
@@ -304,7 +304,7 @@ describe("AST nodes", () => {
                 new Context(0, 0),
             );
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectNode(
                             "Людина",
@@ -333,7 +333,7 @@ describe("AST nodes", () => {
                 new Context(0, 0),
             );
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectNode(
                             "Книга",
@@ -372,7 +372,7 @@ describe("AST nodes", () => {
                 new Context(0, 0),
             );
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "", [
                         new ObjectNode(
                             "Людина",
@@ -402,7 +402,7 @@ describe("AST nodes", () => {
                     "Книга(\n\tсторінок=20,\n\tавтор=Автор(\n\t\tпсевдонім=\"Леся\"\n\t)\n)",
                     new Context(0, 0),
                 );
-                expect(node).toStrictEqual(new Ok(
+                expect(node).toStrictEqual(Ok(
                     [
                         "",
                         [
@@ -445,7 +445,7 @@ describe("AST nodes", () => {
                 new Context(0, 0),
             );
             expect(node).toStrictEqual(
-                new Err(new ParseError(
+                Err(new ParseError(
                     "об'єкт (Помилка розбирача (Розбір кінця тіла об'єкту): Очікувалося ')', але отримали '')",
                     "Людина(ім'я=\"Давид\", бути=так",
                     new CustomError("Розбір об'єкту"),
@@ -456,7 +456,7 @@ describe("AST nodes", () => {
         test("parses from `Порожній()`", () => {
             const node = ObjectNode.parse("Порожній()", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new ObjectNode(
@@ -475,7 +475,7 @@ describe("AST nodes", () => {
         test("parses from `a=2`", () => {
             const node = DictionaryEntryNode.parse("a=2", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryEntryNode(
@@ -492,7 +492,7 @@ describe("AST nodes", () => {
         test("parses from `\"б\"=\"2\"`", () => {
             const node = DictionaryEntryNode.parse("\"б\"=\"2\"", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryEntryNode(
@@ -509,7 +509,7 @@ describe("AST nodes", () => {
         test("parses from `в=[]`", () => {
             const node = DictionaryEntryNode.parse("в=[]", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryEntryNode(
@@ -526,7 +526,7 @@ describe("AST nodes", () => {
         test("parses from `г=()`", () => {
             const node = DictionaryEntryNode.parse("г=()", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryEntryNode(
@@ -543,7 +543,7 @@ describe("AST nodes", () => {
         test("parses from `Ґ=Книжка()`", () => {
             const node = DictionaryEntryNode.parse("Ґ=Книжка()", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryEntryNode(
@@ -560,7 +560,7 @@ describe("AST nodes", () => {
         test("parses from `999=238`", () => {
             const node = DictionaryEntryNode.parse("999=238", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryEntryNode(
@@ -579,7 +579,7 @@ describe("AST nodes", () => {
         test("parses from `()`", () => {
             const node = DictionaryNode.parse("()", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryNode([], new Context(0, 0)),
@@ -595,7 +595,7 @@ describe("AST nodes", () => {
                 new Context(0, 0),
             );
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new DictionaryNode(
@@ -644,14 +644,14 @@ describe("AST nodes", () => {
         test("parses from `[]`", () => {
             const node = ListNode.parse("[]", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok(["", [new ListNode([], new Context(0, 0)), new Context(0, 2)]]),
+                Ok(["", [new ListNode([], new Context(0, 0)), new Context(0, 2)]]),
             );
         });
 
         test("parses from `[1, 2, 3]`", () => {
             const node = ListNode.parse("[1, 2, 3]", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new ListNode(
@@ -671,7 +671,7 @@ describe("AST nodes", () => {
         test("parses from `[1\n, 1]`", () => {
             const node = ListNode.parse("[1\n, 1]", new Context(0, 0));
             expect(node).toStrictEqual(
-                new Ok([
+                Ok([
                     "",
                     [
                         new ListNode(
@@ -695,7 +695,7 @@ describe("AST nodes", () => {
                     new Context(0, 0),
                 );
                 expect(node).toStrictEqual(
-                    new Ok([
+                    Ok([
                         "",
                         [
                             new ListNode(

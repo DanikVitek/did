@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap, unwrapErr} from "../result";
 import {tag} from "../util_parsers/basic";
 import {alt, map, tuple, withError} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError, Parser} from "../util_parsers/types";
@@ -20,15 +20,15 @@ export default class DictionaryEntryNode extends ASTNode {
 
     static parse(input: string, context: Context): IResult<[DictionaryEntryNode, Context]> {
         const parseResult = parseEntry(input, context);
-        if (parseResult.isErr()) {
-            return new Err(new ParseError(
-                `запис словника (${parseResult.unwrapErr()})`,
+        if (isErr(parseResult)) {
+            return Err(new ParseError(
+                `запис словника (${unwrapErr(parseResult)})`,
                 input,
                 new CustomError("Розбір запису словника"),
             ));
         }
-        const [rest, [key, value, newContext]] = parseResult.unwrap();
-        return new Ok([rest, [new DictionaryEntryNode(key, value, context), newContext]]);
+        const [rest, [key, value, newContext]] = unwrap(parseResult);
+        return Ok([rest, [new DictionaryEntryNode(key, value, context), newContext]]);
     }
 
     toString(): string {
@@ -54,10 +54,10 @@ function parseEntry(input: string, context: Context): IResult<[TextNode | Number
             new CustomError("Розбір ключа запису словника"),
         ),
     )(input);
-    if (keyResult.isErr()) {
-        return new Err(keyResult.unwrapErr());
+    if (isErr(keyResult)) {
+        return keyResult;
     }
-    let [rest, [key, newContext]] = keyResult.unwrap();
+    let [rest, [key, newContext]] = unwrap(keyResult);
 
     const sepResult = withError(
         ENTRY_KEY_VALUE_SEPARATOR,
@@ -67,17 +67,17 @@ function parseEntry(input: string, context: Context): IResult<[TextNode | Number
             new CustomError("Розбір розділювача ('=') запису словника"),
         ),
     )(rest);
-    if (sepResult.isErr()) {
-        return new Err(sepResult.unwrapErr());
+    if (isErr(sepResult)) {
+        return sepResult;
     }
-    const [rest1, [ws1, , ws2]] = sepResult.unwrap();
+    const [rest1, [ws1, , ws2]] = unwrap(sepResult);
     newContext = newContext.addRows(ws1.rows).addColumns(ws1.columns + 1).addRows(ws2.rows).addColumns(ws2.columns);
 
     const valueResult = parseASTNode(rest1, newContext);
-    if (valueResult.isErr()) {
-        return new Err(valueResult.unwrapErr());
+    if (isErr(valueResult)) {
+        return valueResult;
     }
-    const [rest2, [value, newContext1]] = valueResult.unwrap();
+    const [rest2, [value, newContext1]] = unwrap(valueResult);
 
-    return new Ok([rest2, [key, value, newContext1]]);
+    return Ok([rest2, [key, value, newContext1]]);
 }

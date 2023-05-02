@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap} from "../result";
 import {pair, withError} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError} from "../util_parsers/types";
 import ASTNode from "./ASTNode";
@@ -14,11 +14,11 @@ export default class DictionaryNode extends ASTNode {
 
     static parse(input: string, context: Context): IResult<[DictionaryNode, Context]> {
         const parseResult = parseDictionary(input, context);
-        if (parseResult.isErr()) {
-            return new Err(new ParseError("словник", input, new CustomError("Розбір словника")));
+        if (isErr(parseResult)) {
+            return Err(new ParseError("словник", input, new CustomError("Розбір словника")));
         }
-        const [rest, [entries, newContext]] = parseResult.unwrap();
-        return new Ok([rest, [new DictionaryNode(entries, context), newContext]]);
+        const [rest, [entries, newContext]] = unwrap(parseResult);
+        return Ok([rest, [new DictionaryNode(entries, context), newContext]]);
     }
 
     toString(): string {
@@ -34,26 +34,26 @@ function parseDictionary(input: string, context: Context): IResult<[DictionaryEn
         DICTIONARY_START,
         new ParseError('(', input, new CustomError("Розбір початку словника")),
     )(input);
-    if (startParser.isErr()) {
-        return new Err(startParser.unwrapErr());
+    if (isErr(startParser)) {
+        return startParser;
     }
-    const [rest, [, offset]] = startParser.unwrap();
+    const [rest, [, offset]] = unwrap(startParser);
     let newContext = context.addColumns(1).addRows(offset.rows).addColumns(offset.columns);
     const entriesParser = listOfDictionaryEntries(rest, newContext);
-    if (entriesParser.isErr()) {
-        return new Err(entriesParser.unwrapErr());
+    if (isErr(entriesParser)) {
+        return entriesParser;
     }
-    const [rest2, [entries, newContext2]] = entriesParser.unwrap();
+    const [rest2, [entries, newContext2]] = unwrap(entriesParser);
     const endParser = withError(
         DICTIONARY_END,
         new ParseError(')', rest2, new CustomError("Розбір кінця словника")),
     )(rest2);
-    if (endParser.isErr()) {
-        return new Err(endParser.unwrapErr());
+    if (isErr(endParser)) {
+        return endParser;
     }
-    const [rest3, [offset2]] = endParser.unwrap();
+    const [rest3, [offset2]] = unwrap(endParser);
     newContext = newContext2.addRows(offset2.rows).addColumns(offset2.columns + 1);
-    return new Ok([rest3, [entries, newContext]]);
+    return Ok([rest3, [entries, newContext]]);
 }
 
 function listOfDictionaryEntries(input: string, context: Context): IResult<[DictionaryEntryNode[], Context]> {

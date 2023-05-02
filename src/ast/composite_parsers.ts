@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap, unwrapErr} from "../result";
 import {alt, tuple, withError} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError, Parser} from "../util_parsers/types";
 import ASTNode from "./ASTNode";
@@ -41,37 +41,35 @@ export function listOfEntries<T extends ASTNode>(
     const entries: T[] = [];
 
     let rest = input;
-    let newContext = context;
-
     let entry: T;
 
     let wsOffset1: Offset;
     let wsOffset2: Offset;
 
     while (true) {
-        const entryResult = entryParser(rest, newContext);
-        if (entryResult.isErr()) {
+        const entryResult = entryParser(rest, context);
+        if (isErr(entryResult)) {
             if (entries.length === 0) {
-                return new Ok([rest, [entries, newContext]]);
+                return Ok([rest, [entries, context]]);
             }
-            return new Err(new ParseError(
-                `елемент переліку (${entryResult.unwrapErr()})`,
+            return Err(new ParseError(
+                `елемент переліку (${unwrapErr(entryResult)})`,
                 rest,
                 new CustomError("Розбір елементу переліку"),
             ));
         }
-        [rest, [entry, newContext]] = entryResult.unwrap();
+        [rest, [entry, context]] = unwrap(entryResult);
         entries.push(entry);
         const sepResult = SEPARATOR_PARSER(rest);
-        if (sepResult.isErr()) {
+        if (isErr(sepResult)) {
             break;
         }
-        [rest, [wsOffset1, , wsOffset2]] = sepResult.unwrap();
-        newContext = newContext
+        [rest, [wsOffset1, , wsOffset2]] = unwrap(sepResult);
+        context = context
             .addRows(wsOffset1.rows)
             .addColumns(wsOffset1.columns + 1)
             .addRows(wsOffset2.rows)
             .addColumns(wsOffset2.columns);
     }
-    return new Ok([rest, [entries, newContext]]);
+    return Ok([rest, [entries, context]]);
 }

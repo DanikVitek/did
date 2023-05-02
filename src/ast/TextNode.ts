@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap, unwrapErr} from "../result";
 import {noneOf, oneOf, tag} from "../util_parsers/basic";
 import {alt, delimited, many0, map, preceded, value, withError} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError} from "../util_parsers/types";
@@ -12,15 +12,15 @@ export default class TextNode extends ASTNode {
 
     static parse(input: string, context: Context): IResult<[TextNode, Context]> {
         const parseResult = stringLiteral(input);
-        if (parseResult.isErr()) {
-            return new Err(new ParseError(
-                `текст (${parseResult.unwrapErr().toString()})`,
+        if (isErr(parseResult)) {
+            return Err(new ParseError(
+                `текст (${unwrapErr(parseResult)})`,
                 input,
                 new CustomError("Розбір текстового вузла"),
             ));
         }
-        const [rest, n] = parseResult.unwrap();
-        return new Ok([rest, [new TextNode(n, context), context.addColumns(input.length - rest.length)]]);
+        const [rest, n] = unwrap(parseResult);
+        return Ok([rest, [new TextNode(n, context), context.addColumns(input.length - rest.length)]]);
     }
 
     toString(): string {
@@ -30,6 +30,12 @@ export default class TextNode extends ASTNode {
 
 const BACKSLASH_TAG = tag("\\");
 
+const MAP_ESCAPE_CHAR = new Map<string, string>([
+    ["\"", "\""],
+    ["t", "\t"],
+    ["\\", "\\"],
+]);
+
 const escapedLineFeed = preceded(BACKSLASH_TAG, tag("n"));
 const escapedCarriageReturn = preceded(BACKSLASH_TAG, tag("r"));
 const allowedChars = noneOf("\"\\n\\r\\\\");
@@ -38,11 +44,7 @@ const stringWithoutQuotes = many0(alt(
     value(escapedLineFeed, "\n"),
     value(escapedCarriageReturn, "\r"),
     map(escapedChar, char =>
-        ({
-            "\"": "\"",
-            "t": "\t",
-            "\\": "\\",
-        })[char],
+        MAP_ESCAPE_CHAR.get(char),
     ),
     allowedChars,
 ));

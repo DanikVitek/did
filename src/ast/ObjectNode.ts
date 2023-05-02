@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap, unwrapErr} from "../result";
 import {withError} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError} from "../util_parsers/types";
 import ASTNode from "./ASTNode";
@@ -18,15 +18,15 @@ export default class ObjectNode extends ASTNode {
 
     static parse(input: string, context: Context): IResult<[ObjectNode, Context]> {
         const parseResult = parseObject(input, context);
-        if (parseResult.isErr()) {
-            return new Err(new ParseError(
-                `об'єкт (${parseResult.unwrapErr()})`,
+        if (isErr(parseResult)) {
+            return Err(new ParseError(
+                `об'єкт (${unwrapErr(parseResult)})`,
                 input,
                 new CustomError("Розбір об'єкту"),
             ));
         }
-        const [rest, [ident, entries, newContext]] = parseResult.unwrap();
-        return new Ok([rest, [new ObjectNode(ident, entries, context), newContext]]);
+        const [rest, [ident, entries, newContext]] = unwrap(parseResult);
+        return Ok([rest, [new ObjectNode(ident, entries, context), newContext]]);
     }
 
     toString(): string {
@@ -40,37 +40,37 @@ function parseObject(input: string, context: Context): IResult<[string, ObjectEn
         IDENT,
         new ParseError("назва об'єкту", input, new CustomError("Розбір назви об'єкту")),
     )(input);
-    if (identResult.isErr()) {
-        return new Err(identResult.unwrapErr());
+    if (isErr(identResult)) {
+        return identResult;
     }
-    const [rest, ident] = identResult.unwrap();
+    const [rest, ident] = unwrap(identResult);
     const newContext = context.addColumns(ident.length);
     const openParenResult = withError(
         DICTIONARY_START,
         new ParseError("(", rest, new CustomError("Розбір початку тіла об'єкту")),
     )(rest);
-    if (openParenResult.isErr()) {
-        return new Err(openParenResult.unwrapErr());
+    if (isErr(openParenResult)) {
+        return openParenResult;
     }
-    const [rest2, [, offset]] = openParenResult.unwrap();
+    const [rest2, [, offset]] = unwrap(openParenResult);
     const newContext2 = newContext.addColumns(1).addRows(offset.rows).addColumns(offset.columns);
 
     const listOfEntriesResult = listOfObjectEntryNodeEntries(rest2, newContext2);
-    if (listOfEntriesResult.isErr()) {
-        return new Err(listOfEntriesResult.unwrapErr());
+    if (isErr(listOfEntriesResult)) {
+        return listOfEntriesResult;
     }
-    const [rest3, [entries, newContext3]] = listOfEntriesResult.unwrap();
+    const [rest3, [entries, newContext3]] = unwrap(listOfEntriesResult);
     const closeParenResult = withError(
         DICTIONARY_END,
         new ParseError(")", rest3, new CustomError("Розбір кінця тіла об'єкту")),
     )(rest3);
-    if (closeParenResult.isErr()) {
-        return new Err(closeParenResult.unwrapErr());
+    if (isErr(closeParenResult)) {
+        return closeParenResult;
     }
-    const [rest4, [offset2]] = closeParenResult.unwrap();
+    const [rest4, [offset2]] = unwrap(closeParenResult);
     const newContext4 = newContext3.addRows(offset2.rows).addColumns(offset2.columns + 1);
 
-    return new Ok([rest4, [ident, entries, newContext4]]);
+    return Ok([rest4, [ident, entries, newContext4]]);
 }
 
 function listOfObjectEntryNodeEntries(input: string, context: Context): IResult<[ObjectEntryNode[], Context]> {

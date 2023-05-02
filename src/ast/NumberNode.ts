@@ -1,4 +1,4 @@
-import {Err, Ok} from "../result";
+import {Err, isErr, Ok, unwrap} from "../result";
 import {numeric1, tag} from "../util_parsers/basic";
 import {alt, map, opt, pair, recognize, tuple} from "../util_parsers/combinator";
 import {CustomError, IResult, ParseError} from "../util_parsers/types";
@@ -12,11 +12,11 @@ export default class NumberNode extends ASTNode {
 
     static parse(input: string, context: Context): IResult<[NumberNode, Context]> {
         const parseResult = NUMBER(input);
-        if (parseResult.isErr()) {
-            return new Err(new ParseError("число", input, new CustomError("Розбір числового вузла")));
+        if (isErr(parseResult)) {
+            return Err(new ParseError("число", input, new CustomError("Розбір числового вузла")));
         }
-        const [rest, n] = parseResult.unwrap();
-        return new Ok([rest, [new NumberNode(n, context), context.addColumns(input.length - rest.length)]]);
+        const [rest, n] = unwrap(parseResult);
+        return Ok([rest, [new NumberNode(n, context), context.addColumns(input.length - rest.length)]]);
     }
 
     toString(): string {

@@ -11,9 +11,9 @@ import {IResult, ParseError, Parser} from "./types";
 export function tag(value: string): Parser<string> {
     return (input: string) => {
         if (input.startsWith(value)) {
-            return new Ok([input.slice(value.length), value]);
+            return Ok([input.slice(value.length), value]);
         }
-        return new Err(new ParseError(value, input, "tag"));
+        return Err(new ParseError(value, input, "tag"));
     };
 }
 
@@ -30,7 +30,7 @@ export function whitespace0(input: string): IResult<string> {
     // unlimited times, as many times as possible, giving back as needed (greedy)
     const match = input.match(/^\s*/)!;
 
-    return new Ok([input.slice(match[0].length), match[0]]);
+    return Ok([input.slice(match[0].length), match[0]]);
 }
 
 /**
@@ -42,9 +42,9 @@ export function whitespace0(input: string): IResult<string> {
 export function alpha(input: string): IResult<string> {
     const match = input.match(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ]/);
     if (match) {
-        return new Ok([input.slice(1), match[0]]);
+        return Ok([input.slice(1), match[0]]);
     }
-    return new Err(new ParseError("alpha", input, "alpha"));
+    return Err(new ParseError("alpha", input, "alpha"));
 }
 
 /**
@@ -56,9 +56,9 @@ export function alpha(input: string): IResult<string> {
 export function alphaNumeric(input: string): IResult<string> {
     const match = input.match(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9]/);
     if (match) {
-        return new Ok([input.slice(1), match[0]]);
+        return Ok([input.slice(1), match[0]]);
     }
-    return new Err(new ParseError("alphaNumeric", input, "alphaNumeric"));
+    return Err(new ParseError("alphaNumeric", input, "alphaNumeric"));
 }
 
 /**
@@ -70,9 +70,9 @@ export function alphaNumeric(input: string): IResult<string> {
 export function numeric1(input: string): IResult<string> {
     const match = input.match(/^\d+/);
     if (match) {
-        return new Ok([input.slice(match[0].length), match[0]]);
+        return Ok([input.slice(match[0].length), match[0]]);
     }
-    return new Err(new ParseError("numeric", input, "numeric1"));
+    return Err(new ParseError("numeric", input, "numeric1"));
 }
 
 /**
@@ -86,9 +86,9 @@ export function oneOf(chars: string): Parser<string> {
     return (input: string) => {
         const match = input.match(regexp);
         if (match) {
-            return new Ok([input.slice(match[0].length), match[0]]);
+            return Ok([input.slice(match[0].length), match[0]]);
         }
-        return new Err(new ParseError(`one of chars in "${chars}"`, input, "one of"));
+        return Err(new ParseError(`one of chars in "${chars}"`, input, "one of"));
     };
 }
 
@@ -103,8 +103,8 @@ export function noneOf(chars: string): Parser<string> {
     return (input: string) => {
         const match = input.match(regexp);
         if (match) {
-            return new Ok([input.slice(match[0].length), match[0]]);
+            return Ok([input.slice(match[0].length), match[0]]);
         }
-        return new Err(new ParseError(`none of chars in "${chars}"`, input, "none of"));
+        return Err(new ParseError(`none of chars in "${chars}"`, input, "none of"));
     };
 }
